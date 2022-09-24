@@ -1,0 +1,51 @@
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fineline-backend
+  namespace: fineline
+  labels:
+    app: fineline
+    type: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fineline
+      type: backend-pod
+  template:
+    metadata:
+      labels:
+        app: fineline
+        type: backend-pod
+    spec:
+      containers:
+      - name: fineline-backend
+        image: sreeram741/fineline-backend:1.8
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: fineline-backend-service
+  namespace: fineline
+  labels:
+    app: fineline
+spec:
+  type: LoadBalancer
+  selector:
+    app: fineline
+    type: backend-pod
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 31000

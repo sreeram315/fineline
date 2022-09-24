@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    image: sreeram741/fineline-viewline:1.2
+    ports:
+      - "8081:3000"

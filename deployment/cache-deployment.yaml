@@ -1,0 +1,51 @@
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fineline-memline
+  namespace: fineline
+  labels:
+    app: fineline
+    type: cache
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fineline
+      type: cache-pod
+  template:
+    metadata:
+      labels:
+        app: fineline
+        type: cache-pod
+    spec:
+      containers:
+      - name: fineline-memline
+        image: sreeram741/fineline-hazelcast:1.0
+        ports:
+        - containerPort: 5701
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "1024Mi"
+            cpu: "500m"
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: fineline-cache-service
+  namespace: fineline
+  labels:
+    app: fineline
+spec:
+  type: NodePort
+  selector:
+    app: fineline
+    type: cache-pod
+  ports:
+  - port: 5701
+    targetPort: 5701
+    
