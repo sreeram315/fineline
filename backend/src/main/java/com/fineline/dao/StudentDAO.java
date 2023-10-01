@@ -8,6 +8,7 @@ import com.hazelcast.map.IMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -30,23 +31,29 @@ public class StudentDAO {
     @Autowired
     private HazelcastInstance hazelcastInstance;
 
+    @Value("${hazelcast.enabled}")
+    private boolean hazelcastEnabled;
+
     public IMap<Integer, Student> getHazelcastStudentsMap() {
         return hazelcastInstance.getMap(StudentConstants.CACHE_MAP);
     }
 
     public Student get(@Param("id") Integer id) throws InterruptedException {
-        Student student = getHazelcastStudentsMap().get(id);
-        if(student != null){
-            LOG.info(String.format("Fetched student from cache for id: %d", id));
-            return student;
+        Student student = null;
+        if (hazelcastEnabled) {
+            student = getHazelcastStudentsMap().get(id);
+            if (student != null) {
+                LOG.debug(String.format("Fetched student from cache for id: %d", id));
+                return student;
+            }
         }
-        Thread.sleep(1000);
         student = studentRepo.findById2(id).orElse(null);
-        if(student != null) {
-            LOG.info(String.format("Inserting student into cache for id: %d", id));
+        if (hazelcastEnabled && student != null) {
+            LOG.debug(String.format("Inserting student into cache for id: %d", id));
             getHazelcastStudentsMap().put(id, student);
-        } else{
-            LOG.info(String.format("Student not found for id: %d", id));
+        }
+        if (student == null) {
+            LOG.debug(String.format("Student not found for id: %d", id));
         }
         return student;
     }
