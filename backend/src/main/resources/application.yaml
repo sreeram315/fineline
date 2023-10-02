@@ -22,4 +22,4 @@ cloud:
             topic:
                 arn: arn:aws:sqs:ap-south-1:559129048391:student-add
 server:
-    port: 8080
+    port: 8000
